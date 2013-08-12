@@ -17,7 +17,7 @@ var DATE_PROGRAM_START  = 'August 1, 2013',
 var API_SERVER          = 'data/'
 var API_LOCATIONS       = API_SERVER + 'locations.geojson',
 	API_VENDORS         = API_SERVER + 'vendors.json',
-	API_TIMESLOTS       = API_SERVER + 'timeslots.json' + TODAY.toJSON()
+	API_TIMESLOTS       = API_SERVER + 'timeslots.json',
 	API_FEEDBACK        = API_SERVER + 'feedbacks'
 
 var MAPBOX_ID           = 'codeforamerica.map-wzcm8dk0',
