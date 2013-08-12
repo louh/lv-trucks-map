@@ -1,5 +1,11 @@
 // LAS VEGAS FOOD TRUCKS MAP - main application Javascript
 
+// ***** [[SF DEMO]] *****
+//
+//    Modified for SF Retail Truck demo
+//
+// ***** [[END SF DEMO]] *****
+
 // Current date and time, from moment.js
 var NOW                 = moment(),
 	TODAY               = moment().startOf('day')
@@ -23,18 +29,19 @@ var API_LOCATIONS       = API_SERVER + 'locations.geojson',
 var MAPBOX_ID           = 'codeforamerica.map-wzcm8dk0',
 	MAPBOX_ID_RETINA    = 'codeforamerica.map-dfs3qfso'
 
-var MAP_INIT_LATLNG     = [36.1665, -115.1479],
+var MAP_INIT_LATLNG     = [37.7716, -122.4229],
 	MAP_INIT_ZOOM       = 16,
 	MAP_FIT_PADDING     = 0.25,
 	MAP_MAX_PADDING     = 6
 
 var DEBUG_ALLOW         = true
 
+// ***** [[SF DEMO]] *****
 // Deactivate calls to ga()
-
 function ga() {
 	return
 }
+// ***** [[END SF DEMO]] *****
 
 
 /*************************************************************************
@@ -460,6 +467,29 @@ function _doTimeslotData (timeslots) {
 	// Actions
 	for (var i = 0; i < timeslots.length; i++) {
 
+		// **** [[SF DEMO]] ****
+		// Convert all timeslot data to either today or tomorrow.
+		var start_convert = moment(timeslots[i].start_at)
+		var end_convert = moment(timeslots[i].finish_at)
+
+		start_convert.month(NOW.month()).year(NOW.year())
+		end_convert.month(NOW.month()).year(NOW.year())
+
+		if (start_convert.date() == 12) {
+			start_convert.date(NOW.date())
+			end_convert.date(NOW.date())
+		}
+		if (start_convert.date() == 13) {
+			start_convert.date(NOW.date() + 1)
+			end_convert.date(NOW.date() + 1)
+		}
+
+		// mutate the original data source
+		timeslots[i].start_at = start_convert.toISOString()
+		timeslots[i].finish_at = end_convert.toISOString()
+
+		// **** [[END SF DEMO]] ****
+
 		var start = moment(timeslots[i].start_at)
 		var end = moment(timeslots[i].finish_at)
 
@@ -495,6 +525,11 @@ function _doVendorData (vendors) {
 
 		var imagePath = 'img/vendor-cache/'
 		var imageIDs = [4, 6, 10, 11, 12, 13, 14, 17, 19, 20, 21, 22, 23, 24, 26]
+// **** [[SF DEMO]] ****
+// this line has been edited for SF
+		var imagePath = 'data/vendor-cache/'
+		var imageIDs = []
+// **** [[END SF DEMO]] ****
 
 		for (var i = 0; i < imageIDs.length; i++) {
 			for (var j = 0; j < vendors.length; j++) {
@@ -539,6 +574,28 @@ function putInData(locations, timeslots, vendors) {
 
 	var mustacheScheduleEntry = $('#mustache-schedule-entry').html()
 
+
+	// ***** [[SF DEMO]] *****
+	// Random current vendor data
+	var shuffle = function (a, b) {
+		return Math.random() > 0.5 ? -1 : 1
+	}
+
+	var randomizeVendors = vendors.slice(0) // want a new array, not a reference
+	randomizeVendors.sort(shuffle)
+
+	// Inject random current vendor data
+	for (var j = 0; j < locations.features.length; j ++) {
+		// flip a coin
+		var coin = Math.floor(Math.random() * 10)
+		if (coin >= 6 ) {   // adjust this for a general sense of how much should be open
+			var randomVendor = randomizeVendors.pop()
+			locations.features[j].properties.current_vendor_id = randomVendor.id
+		}
+	}
+	// ***** [[END SF DEMO]] ******
+
+
 	// Current vendor id is stored in the location object.
 	// Use this to create the schedule.now list
 	for (var i = 0; i < locations.features.length; i++) {
@@ -570,6 +627,15 @@ function putInData(locations, timeslots, vendors) {
 				timeslots[i].location = locations.features[j].properties
 			}
 		}
+
+		// ***** [[SF DEMO]] *****
+		// add vendor data to schedule
+		for (var h = 0; h < vendors.length; h++) {
+			if (timeslots[i].vendor_id == vendors[h].id) {
+				timeslots[i].vendor = vendors[h]
+			}
+		}
+		// ***** [[END SF DEMO]] ******
 
 		// NOW OPEN - Timeslot processing
 		if (NOW > start && NOW < end) {
