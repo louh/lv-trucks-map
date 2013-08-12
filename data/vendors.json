@@ -1,0 +1,32 @@
+[
+	{
+		"id": 1,
+		"name": "Dog Heaven",
+		"cuisine": "Luxury pet supply"
+	},
+	{
+		"id": 2,
+		"name": "Late Edition",
+		"cuisine": "Men's & women's clothing"
+	},
+	{
+		"id": 3,
+		"name": "PPP+",
+		"cuisine": "Office supplies"
+	},
+	{
+		"id": 4,
+		"name": "Empty Nest",
+		"cuisine": "Home furnishings"
+	},
+	{
+		"id": 5,
+		"name": "Heartfelt",
+		"cuisine": "Custom greeting cards"
+	},
+	{
+		"id": 6,
+		"name": "City Counsel",
+		"cuisine": "Legal services"
+	}
+]

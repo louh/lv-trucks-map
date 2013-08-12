@@ -1,0 +1,101 @@
+{
+	"type": "FeatureCollection",
+	"features": [
+		{
+			"id": 1,
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [-122.422922,37.771630]
+			},
+			"properties": {
+				"name": "McCoppin Northwest",
+				"address": "McCoppin & Valencia (NW)"
+			}
+		},
+		{
+			"id": 2,
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [-122.422793,37.771542]
+			},
+			"properties": {
+				"name": "McCoppin Southwest",
+				"address": "McCoppin & Valencia (SW)"
+			}
+		},
+		{
+			"id": 3,
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [-122.422309,37.771684]
+			},
+			"properties": {
+				"name": "McCoppin Northeast",
+				"address": "McCoppin & Valencia (NE)"
+			}
+		},
+		{
+			"id": 4,
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [-122.399413,37.723369]
+			},
+			"properties": {
+				"name": "Paul & Crane",
+				"address": "Paul Ave. & Crane St."
+			}
+		},
+		{
+			"id": 5,
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [-122.447101,37.720349]
+			},
+			"properties": {
+				"name": "Geneva & San Jose",
+				"address": "Geneva Ave. & San Jose"
+			}
+		},
+		{
+			"id": 6,
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [-122.482184,37.748521]
+			},
+			"properties": {
+				"name": "Quintara & 25th",
+				"address": "Quintara St. & 25th Ave."
+			}
+		},
+		{
+			"id": 7,
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [-122.503530,37.781210]
+			},
+			"properties": {
+				"name": "42nd & Clement",
+				"address": "Clement St. & 42nd Ave."
+			}
+		},
+		{
+			"id": 8,
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [-122.413979,37.726410]
+			},
+			"properties": {
+				"name": "Burrows & University",
+				"address": "Burrows St. & University St."
+			}
+		}
+	]
+}
