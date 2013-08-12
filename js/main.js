@@ -1,5 +1,9 @@
 // LAS VEGAS FOOD TRUCKS MAP - main application Javascript
 
+// Current date and time, from moment.js
+var NOW                 = moment(),
+	TODAY               = moment().startOf('day')
+
 /*************************************************************************
 // 
 // CONFIGURATION
@@ -13,7 +17,7 @@ var DATE_PROGRAM_START  = 'August 1, 2013',
 var API_SERVER          = 'data/'
 var API_LOCATIONS       = API_SERVER + 'locations.geojson',
 	API_VENDORS         = API_SERVER + 'vendors.json',
-	API_TIMESLOTS       = API_SERVER + 'timeslots.json'
+	API_TIMESLOTS       = API_SERVER + 'timeslots.json' + TODAY.toJSON()
 	API_FEEDBACK        = API_SERVER + 'feedbacks'
 
 var MAPBOX_ID           = 'codeforamerica.map-wzcm8dk0',
@@ -39,10 +43,6 @@ function ga() {
 // You should not have to edit these global variables here
 //
 // ***********************************************************************/
-
-// Current date and time, from moment.js
-var NOW                 = moment(),
-	TODAY               = moment().startOf('day')
 
 // Map variables
 var MAP_CENTER_OFFSET   = _getCenterOffset(),
@@ -1067,6 +1067,11 @@ function showError (message) {
 	$('#vendor-data').hide(250)
 	$('#error').show(250)
 	$('#error .message').html(message)
+
+	// Clear loading timeouts
+	clearTimeout(LOAD_TIMEOUT_01)
+	clearTimeout(LOAD_TIMEOUT_02)
+	clearTimeout(LOAD_TIMEOUT_03)
 
 	// Send an event to GA
 	ga('send', 'event', 'load', 'error', message)
