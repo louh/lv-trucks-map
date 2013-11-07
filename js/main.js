@@ -1,8 +1,30 @@
 // LAS VEGAS FOOD TRUCKS MAP - main application Javascript
+"use strict";
+
+// ***** [[SF DEMO]] *****
+//
+//    Modified for SF Retail Truck demo
+//
+// Deactivate calls to ga()
+function ga() {
+	return
+}
+// ***** [[END SF DEMO]] *****
 
 // Current date and time, from moment.js
 var NOW                 = moment(),
 	TODAY               = moment().startOf('day')
+
+// Debug options
+var DEBUG_ALLOW = true
+var DEBUG_MODE = false
+var DEBUG_CONCIERGE_MODE,
+	DEBUG_FAKE_METERS
+var DEBUG_CLV_VENDOR_IMAGE = 1
+
+if (_getQueryStringParams('debug') == 1) {
+	_debug()
+}
 
 /*************************************************************************
 // 
@@ -28,14 +50,10 @@ var MAP_INIT_LATLNG     = [36.1665, -115.1479],
 	MAP_FIT_PADDING     = 0.25,
 	MAP_MAX_PADDING     = 6
 
-var DEBUG_ALLOW         = true
-
 // Deactivate calls to ga()
-
 function ga() {
 	return
 }
-
 
 /*************************************************************************
 // 
@@ -61,22 +79,11 @@ var LOAD_TIMEOUT_02 = setTimeout(function () {
 var LOAD_TIMEOUT_03 = setTimeout(function () {
 						_loadTimeout(LOAD_TIMEOUT_LENGTH_03)
 						}, LOAD_TIMEOUT_LENGTH_03)
-
-
-/*************************************************************************
-// 
-// DEBUG MODE
-//
-// ***********************************************************************/
-
-var DEBUG_MODE = false
-var DEBUG_CONCIERGE_MODE,  // delete this line to remove permanent concierge state
-	DEBUG_FAKE_METERS
-var DEBUG_CLV_VENDOR_IMAGE = 1
-
-if (_getQueryStringParams('debug') == 1) {
-	_debug()
-}
+// Set a timeout to display a loading screen if API data takes too long to load.
+var SPINNER_TIMEOUT_LENGTH = 2000
+var SPINNER_TIMEOUT = setTimeout(function () {
+						_loadSpinner(SPINNER_TIMEOUT_LENGTH)
+						}, SPINNER_TIMEOUT_LENGTH)
 
 
 /*************************************************************************
@@ -91,16 +98,16 @@ var locations,
 	timeslots,
 	vendors,
 	schedule = {
-	'now': {
-		'entries': []
-	},
-	'later': {
-		'entries': []
-	},
-	'tomorrow': {
-		'entries': []
+		'now': {
+			'entries': []
+		},
+		'later': {
+			'entries': []
+		},
+		'tomorrow': {
+			'entries': []
+		}
 	}
-}
 
 // Load data from API asynchronously
 $.when( $.ajax({
@@ -178,6 +185,7 @@ $.when( $.ajax({
 	clearTimeout(LOAD_TIMEOUT_01)
 	clearTimeout(LOAD_TIMEOUT_02)
 	clearTimeout(LOAD_TIMEOUT_03)
+	clearTimeout(SPINNER_TIMEOUT)
 
 }, function () {
 	// On failure
@@ -270,6 +278,13 @@ var hereMarker = L.icon({
 
 $(document).ready( function () {
 
+	// INTERNET EXPLORER
+	// Bind a click to close unsupported IE browser warning message
+	$('.dismiss-ie-browser').click( function (e) {
+		e.preventDefault()
+		$('.ie-browser').hide()
+	})
+
 	// TRUCK HEADING - toggler for entries
 	$('.vendor-heading').click( function () {
 		toggleVendorEntries($(this))
@@ -358,7 +373,11 @@ $(document).ready( function () {
 
 	// Keybinding for debug menu & toggle
 	$(document).keydown(function (e) {
-		if (e.which == 68 && e.ctrlKey == false && e.metaKey == false) {    // key 'd' - opens debug menu
+		if (e.which == 68 && e.ctrlKey == true && e.metaKey == false) {    // key 'ctrl-d' - opens debug menu
+			if ($('#feedback').is(':visible')) {
+				return
+			}
+			e.preventDefault()
 			if ($('#debug').is(':visible')) {
 				$('#debug').hide()
 			} else {
@@ -403,7 +422,7 @@ $(document).ready( function () {
 
 		// SECRET!
 		// To disable, simply comment out or delete the following function.
-		_hideAttribution(pointLatLng)
+		// _hideAttribution(pointLatLng)
 
 	})
 
@@ -460,6 +479,29 @@ function _doTimeslotData (timeslots) {
 	// Actions
 	for (var i = 0; i < timeslots.length; i++) {
 
+		// **** [[SF DEMO]] ****
+		// Convert all timeslot data to either today or tomorrow.
+		var start_convert = moment(timeslots[i].start_at)
+		var end_convert = moment(timeslots[i].finish_at)
+
+		start_convert.month(NOW.month()).year(NOW.year())
+		end_convert.month(NOW.month()).year(NOW.year())
+
+		if (start_convert.date() == 12) {
+			start_convert.date(NOW.date())
+			end_convert.date(NOW.date())
+		}
+		if (start_convert.date() == 13) {
+			start_convert.date(NOW.date() + 1)
+			end_convert.date(NOW.date() + 1)
+		}
+
+		// mutate the original data source
+		timeslots[i].start_at = start_convert.toISOString()
+		timeslots[i].finish_at = end_convert.toISOString()
+
+		// **** [[END SF DEMO]] ****
+
 		var start = moment(timeslots[i].start_at)
 		var end = moment(timeslots[i].finish_at)
 
@@ -495,6 +537,11 @@ function _doVendorData (vendors) {
 
 		var imagePath = 'img/vendor-cache/'
 		var imageIDs = [4, 6, 10, 11, 12, 13, 14, 17, 19, 20, 21, 22, 23, 24, 26]
+// **** [[SF DEMO]] ****
+// this line has been edited for SF
+		var imagePath = 'data/vendor-cache/'
+		var imageIDs = []
+// **** [[END SF DEMO]] ****
 
 		for (var i = 0; i < imageIDs.length; i++) {
 			for (var j = 0; j < vendors.length; j++) {
@@ -539,6 +586,26 @@ function putInData(locations, timeslots, vendors) {
 
 	var mustacheScheduleEntry = $('#mustache-schedule-entry').html()
 
+	// ***** [[SF DEMO]] *****
+	// Random current vendor data
+	var shuffle = function (a, b) {
+		return Math.random() > 0.5 ? -1 : 1
+	}
+
+	var randomizeVendors = vendors.slice(0) // want a new array, not a reference
+	randomizeVendors.sort(shuffle)
+
+	// Inject random current vendor data
+	for (var j = 0; j < locations.features.length; j ++) {
+		// flip a coin
+		var coin = Math.floor(Math.random() * 10)
+		if (coin >= 6 ) {   // adjust this for a general sense of how much should be open
+			var randomVendor = randomizeVendors.pop()
+			locations.features[j].properties.current_vendor_id = randomVendor.id
+		}
+	}
+	// ***** [[END SF DEMO]] ******
+
 	// Current vendor id is stored in the location object.
 	// Use this to create the schedule.now list
 	for (var i = 0; i < locations.features.length; i++) {
@@ -570,6 +637,15 @@ function putInData(locations, timeslots, vendors) {
 				timeslots[i].location = locations.features[j].properties
 			}
 		}
+
+		// ***** [[SF DEMO]] *****
+		// add vendor data to schedule
+		for (var h = 0; h < vendors.length; h++) {
+			if (timeslots[i].vendor_id == vendors[h].id) {
+				timeslots[i].vendor = vendors[h]
+			}
+		}
+		// ***** [[END SF DEMO]] ******
 
 		// NOW OPEN - Timeslot processing
 		if (NOW > start && NOW < end) {
@@ -684,7 +760,7 @@ function DoMapStuff (locations, timeslots, vendors) {
 
 				if (marker.feature.id == timeslots[k].location_id && NOW.isAfter(start) && NOW.isBefore(end)) {
 					marker.schedule = {}
-					until = moment(timeslots[k].finish_at)
+					var until = moment(timeslots[k].finish_at)
 					marker.schedule.until = _formatTime(until)
 				}
 			}
@@ -753,10 +829,6 @@ function DoMapStuff (locations, timeslots, vendors) {
 
 }
 
-
-
-
-
 /**
  *   Shows or hides trucks under each section of trucks data panel
  */
@@ -817,15 +889,6 @@ function toggleFooterPopup(popup, clicked) {
 	}
 }
 
-/**
- *   Display vendor info panel with what's open now and upcoming
- */
-
-function showScheduleOverlay () {
-
-// NOT USED AT THE MOMENT
-
-}
 
 /**
  *   Display vendor schedule on footer / calendar popup
@@ -909,9 +972,9 @@ function _formatTime (date) {
 	// like '6am' or '6:30pm'
 
 	if (date.minutes() > 0) {
-		return string = date.format('h:mma')
+		return date.format('h:mma')
 	} else {
-		return string = date.format('ha')
+		return date.format('ha')
 	}
 
 }
@@ -998,6 +1061,11 @@ function _sendFeedback () {
 
 function _resetFeedbackForm () {
 	document.getElementById('feedback-form').reset()
+
+	// Call placeholder for IE8
+	$('input, textarea').placeholder()
+
+	// Reset DOM
 	$('#feedback-sending').hide()
 	$('#feedback-success').hide()
 	$('#feedback-error').hide()
@@ -1051,11 +1119,16 @@ function _loadTimeout (seconds) {
 		seconds = seconds / 1000
 	}
 	var message = 'The application took longer than ' + seconds + ' seconds to load.'
-	if (seconds >= 2.5) {
-		$('#loading').fadeIn(200)
-	}
 //	console.log(message)
 	ga('send', 'event', 'load', 'timeout', message)
+}
+
+/**
+ *   Show spinning wheel if API takes too long to load. Call from setTimeout()
+ */
+
+function _loadSpinner (milliseconds) {
+	$('#loading').fadeIn(200)
 }
 
 /**
@@ -1110,8 +1183,8 @@ function _debug () {
 	$('#debug').show()
 
 	// Get parameters from query string
-	var DEBUG_FAKE_METERS     = parseInt(_getQueryStringParams('t'))
-	var DEBUG_CONCIERGE_MODE  = parseInt(_getQueryStringParams('c'))
+	DEBUG_FAKE_METERS         = parseInt(_getQueryStringParams('t'))
+	DEBUG_CONCIERGE_MODE      = parseInt(_getQueryStringParams('c'))
 	var DEBUG_DATE_OVERRIDE   = parseInt(_getQueryStringParams('d')),
 		DEBUG_DATE_MONTH      = parseInt(_getQueryStringParams('mm')),
 		DEBUG_DATE_DATE       = parseInt(_getQueryStringParams('dd')),
@@ -1133,7 +1206,7 @@ function _debug () {
 	if (DEBUG_DATE_OVERRIDE === 1) {
 		$('#debug-change-date').val(['1'])
 
-		DEBUG_DATE = moment().month(DEBUG_DATE_MONTH)
+		var DEBUG_DATE = moment().month(DEBUG_DATE_MONTH)
 							 .date(DEBUG_DATE_DATE)
 							 .year(DEBUG_DATE_YEAR)
 							 .hour(DEBUG_DATE_HOUR)
@@ -1146,11 +1219,11 @@ function _debug () {
 	$('#debug-date').html(NOW.format('ddd MMM D, YYYY HH:mm:ss ([UTC offset] Z)'))
 
 	// Populate correct time/date dropdowns
-	$('#debug-date-month').val([NOW.month()])
-	$('#debug-date-day').val([NOW.date()])
-	$('#debug-date-year').val([NOW.year()])
-	$('#debug-date-hour').val([NOW.hour()])
-	$('#debug-date-minute').val([Math.floor(NOW.minute() / 5) * 5])
+	$('#debug-date-month').val(NOW.month())
+	$('#debug-date-day').val(NOW.date())
+	$('#debug-date-year').val(NOW.year())
+	$('#debug-date-hour').val(NOW.hour())
+	$('#debug-date-minute').val(Math.floor(NOW.minute() / 5) * 5)
 
 	// Hide or show the debug options
 	$('#debug-options-button').on('click', function () {

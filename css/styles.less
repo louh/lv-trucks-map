@@ -341,6 +341,9 @@ header {
 				&.cuisine {
 					color: #777;
 					margin-top: 3px;
+					overflow: hidden;
+					white-space: nowrap;
+					text-overflow: ellipsis;
 				}
 				&.location {
 					margin-top: 10px;
@@ -527,7 +530,7 @@ div.footer-popup {
 			background-position: 0 2px;
 			line-height: 20px;
 			position: relative;
-			&:before {
+			&::before {
 				width: 16px;
 				height: 16px;
 				content: '';
@@ -825,10 +828,14 @@ div.footer-popup {
 }
 
 // CHROME FRAME OVERRIDE
-.chromeframe {
-	font-size: 36px;
+// Chrome Frame is being discontinued; this is just a warning message now.
+.ie-browser {
+	font-size: 14px;
 	background-color: #ffffef;
+	z-index: 999999;
+	margin: 0;
+	padding: 5px 20px;
+	border-bottom: 1px solid lightgray;
 }
-
 
 
